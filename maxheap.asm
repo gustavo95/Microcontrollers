@@ -31,56 +31,15 @@ heap	EQU	h'30'	;30: array length, 31+: array content
         BCF		PIR1, EEIF
 isr_exit:
 	RETFIE
-	    
-writeEEByte:
-        MOVF	index, W
-        BANKSEL	EECON1
-        MOVWF	EEADR
-        MOVF	INDF, W
-        MOVWF	EEDATA
-
-        BSF	EECON1, WREN
-        BCF	INTCON, GIE
-        BTFSC	INTCON,GIE
-        GOTO	$ - 2
-        MOVLW	h'55'
-        MOVWF	EECON2
-        MOVLW	h'AA'
-        MOVWF	EECON2
-        BSF	EECON1,WR
-	BSF	INTCON, GIE
-	BCF	EECON1, WREN
 	
-	MOVF	index, W
-	SUBWF	heap, W
-	BTFSC	STATUS, C
-	GOTO	writeEEByte
-	    
-	RETURN
-	    
-readEEByte:   
-        BANKSEL EEADR
-        MOVWF   EEADR
-        BSF	EECON1, RD
-        MOVF    EEDATA, W
-	BANKSEL PORTA
-	RETURN
-
-readEEData:	    
-	MOVLW   h'31'
-        MOVWF   FSR
-        CLRF    index	    
-readLoop:
-        INCF    index
-        MOVF    index, W
-        CALL    readEEByte
-        MOVWF   INDF
-        INCF    FSR	    
-        MOVF    index, W    
-        SUBWF   heap, W	    
-        BTFSS   STATUS, Z
-        GOTO    readLoop
-        RETURN
+#include    "EEPROM_Utils.inc"
+	
+GETCONT	macro
+	MOVWF	FSR
+	MOVLW	h'30'
+	ADDWF	FSR
+	MOVF	INDF, W
+	endm
 	    
 swap:	    
 	MOVF	reg1, W
@@ -117,25 +76,21 @@ maxheapify:
 	MOVF	index, W
 	MOVWF	higher
 	
-	;verify_left
+;verify_left
+	;left <= heap_length
 	MOVF	left, W
 	SUBWF	heap, W
 	BTFSS	STATUS, C
 	GOTO	verify_right
 	
 	MOVF	left, W
-	MOVWF	FSR
-	MOVLW	h'30'
-	ADDWF	FSR
-	MOVF	INDF, W
+	GETCONT
 	MOVWF	content
 	
 	MOVF	index, W
-	MOVWF	FSR
-	MOVLW	h'30'
-	ADDWF	FSR
-	MOVF	INDF, W
+	GETCONT
 	
+	;left_contnet <=    index_content 
 	SUBWF	content, W
 	BTFSS	STATUS, C
 	GOTO	verify_right
@@ -150,17 +105,11 @@ verify_right:
 	GOTO	verify_higher
 	
 	MOVF	right, W
-	MOVWF	FSR
-	MOVLW	h'30'
-	ADDWF	FSR
-	MOVF	INDF, W
+	GETCONT
 	MOVWF	content
 	
 	MOVF	higher, W
-	MOVWF	FSR
-	MOVLW	h'30'
-	ADDWF	FSR
-	MOVF	INDF, W
+	GETCONT
 	
 	SUBWF	content, W
 	BTFSS	STATUS, C
