@@ -7,16 +7,18 @@
 ; CONFIG
 ; __config 0xFF19
  __CONFIG _FOSC_INTOSCCLK & _WDTE_OFF & _PWRTE_OFF & _MCLRE_OFF & _BOREN_OFF & _LVP_OFF & _CPD_OFF & _CP_OFF
-	    
-reg1    EQU	h'20'	;swap register
-reg2    EQU	h'21'	;swap register
-aux	EQU	h'22'	;swap register
-index	EQU	h'23'	;index 
-left	EQU	h'24'	;index of left child
-right	EQU	h'25'	;index of righ child
-higher	EQU	h'26'	;index of higher number on heapfy
-subtree	EQU	h'27'	;index of a subtree root
-content	EQU	h'28'	;content of an index
+
+CBLOCK	h'20'
+reg1			;swap register
+reg2			;swap register
+aux			;swap register
+index			;index 
+left			;index of left child
+right			;index of righ child
+higher			;index of higher number on heapfy
+subtree			;index of a subtree root
+content			;content of an index
+ENDC
 heap	EQU	h'30'	;30: array length, 31+: array content
  
         org 0x0000
@@ -34,12 +36,12 @@ isr_exit:
 	
 #include    "EEPROM_Utils.inc"
 	
-GETCONT	macro
+GETCONT	MACRO
 	MOVWF	FSR
 	MOVLW	h'30'
 	ADDWF	FSR
 	MOVF	INDF, W
-	endm
+	ENDM
 	    
 swap:	    
 	MOVF	reg1, W
