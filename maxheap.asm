@@ -19,18 +19,18 @@ subtree	EQU	h'27'	;index of a subtree root
 content	EQU	h'28'	;content of an index
 heap	EQU	h'30'	;30: array length, 31+: array content
  
-	    org 0x0000
-	    GOTO setup
+        org 0x0000
+        GOTO setup
 	    
-	    org 0x0004
-	    BANKSEL	PORTA
-	    BTFSS	PIR1, EEIF
-	    GOTO	isr_exit
-	    INCF	index, F
-	    INCF	FSR, F
-	    BCF		PIR1, EEIF
+        org 0x0004
+        BANKSEL	PORTA
+        BTFSS	PIR1, EEIF
+        GOTO	isr_exit
+        INCF	index, F
+        INCF	FSR, F
+        BCF		PIR1, EEIF
 isr_exit:
-	    RETFIE
+	RETFIE
 	    
 writeEEByte:
         MOVF	index, W
@@ -216,23 +216,25 @@ setup:
 	CALL    readEEByte
 	MOVWF   INDF
 	CALL    readEEData
-	MOVLW	h'01'
-	MOVWF	index
-	GOTO menu
 	
-menu:	
-	CALL	build_maxheap
-	CLRF	index
-	MOVLW	h'01'
-	MOVWF	index
-	MOVLW	h'31'
-	MOVWF	FSR
 	MOVLW	b'11000000'
 	MOVWF	INTCON
 	BANKSEL	EECON1
 	BSF	PIE1, EEIE
 
 	BANKSEL	PORTA
+	MOVLW	h'01'
+	MOVWF	index
+	GOTO main
+	
+main:	
+	CALL	build_maxheap
+	
+ 	CLRF	index
+	MOVLW	h'01'
+	MOVWF	index
+	MOVLW	h'31'
+	MOVWF	FSR
 	CALL	writeEEByte
 	
 	SLEEP
