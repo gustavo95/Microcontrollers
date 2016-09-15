@@ -30,18 +30,18 @@ heap	EQU	h'30'	;30: array length, 31+: array content
         GOTO	isr_exit
         INCF	index, F
         INCF	FSR, F
-        BCF		PIR1, EEIF
+        BCF	PIR1, EEIF
 isr_exit:
 	RETFIE
 	
 #include    "EEPROM_Utils.inc"
 	
-GETCONT	MACRO
+get_content:
 	MOVWF	FSR
 	MOVLW	h'30'
 	ADDWF	FSR
 	MOVF	INDF, W
-	ENDM
+	RETURN
 	    
 swap:	    
 	MOVF	reg1, W
@@ -79,20 +79,18 @@ maxheapify:
 	MOVWF	higher
 	
 ;verify_left
-	;left <= heap_length
 	MOVF	left, W
 	SUBWF	heap, W
 	BTFSS	STATUS, C
 	GOTO	verify_right
 	
 	MOVF	left, W
-	GETCONT
+	CALL	get_content
 	MOVWF	content
 	
 	MOVF	index, W
-	GETCONT
-	
-	;left_contnet <=    index_content 
+	CALL	get_content
+	 
 	SUBWF	content, W
 	BTFSS	STATUS, C
 	GOTO	verify_right
@@ -107,11 +105,11 @@ verify_right:
 	GOTO	verify_higher
 	
 	MOVF	right, W
-	GETCONT
+	CALL	get_content
 	MOVWF	content
 	
 	MOVF	higher, W
-	GETCONT
+	CALL	get_content
 	
 	SUBWF	content, W
 	BTFSS	STATUS, C
@@ -188,7 +186,7 @@ main:
 	MOVWF	FSR
 	CALL	writeEEByte
 	
-	SLEEP
+	GOTO	$
 	
 	ORG	    0x2100	    
 	DE	    0x1B, 0x06, 0x81, 0x87, 0x14, 0x17, 0x12, 0x28, 0x71, 0x25, 0x80, 0x20, 0x52, 0x78, 0x31, 0x42, 0x31, 0x59, 0x16, 0x24, 0x79, 0x63, 0x18, 0x19, 0x32, 0x13, 0x15, 0x48
